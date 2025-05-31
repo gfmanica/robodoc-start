@@ -8,6 +8,7 @@ import {
     Scripts
 } from '@tanstack/react-router';
 
+import { Header } from '@/components/header';
 import appCss from '@/styles/app.css?url';
 
 export const Route = createRootRoute({
@@ -54,11 +55,11 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
                 <HeadContent />
             </head>
 
-            <body className="font-inter">
-                <main className="flex h-dvh w-dvw flex-col gap-2">
-                    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 pt-[80px] pb-6">
-                        {children}
-                    </div>
+            <body className="min-h-dvh w-dvw">
+                <Header />
+
+                <main className="mx-auto flex w-full max-w-5xl flex-col gap-2 p-4 pt-[65px]">
+                    {children}
                 </main>
 
                 <Scripts />
