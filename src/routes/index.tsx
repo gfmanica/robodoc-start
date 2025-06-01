@@ -11,8 +11,16 @@ export const Route = createFileRoute('/')({
 });
 
 function Home() {
-    const { loading, training, error, accuracy, predictDiabetes, model } =
-        useDiabetesModel();
+    const {
+        loading,
+        training,
+        error,
+        accuracy,
+        predictDiabetes,
+        model,
+        renderTrainingGraphs,
+        trainingHistory
+    } = useDiabetesModel();
 
     return (
         <>
@@ -25,7 +33,12 @@ function Home() {
                 handlePredict={predictDiabetes}
             />
 
-            <TrainingContainer model={model} accuracy={accuracy} />
+            <TrainingContainer
+                model={model}
+                accuracy={accuracy}
+                renderTrainingGraphs={renderTrainingGraphs}
+                trainingHistory={trainingHistory}
+            />
         </>
     );
 }

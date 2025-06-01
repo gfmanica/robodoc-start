@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import * as tf from '@tensorflow/tfjs';
+import * as tfvis from '@tensorflow/tfjs-vis';
 
 import { ROBODOC_CSV_URL } from '@/constants';
 
@@ -45,8 +46,80 @@ export function useDiabetesModel() {
     const [accuracy, setAccuracy] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
     const [training, setTraining] = useState(false);
+    const [trainingHistory, setTrainingHistory] = useState<any[]>([]);
     const dataMean = useRef<tf.Tensor | null>(null);
     const dataStd = useRef<tf.Tensor | null>(null);
+
+    // Função para renderizar gráficos em elementos específicos
+    const renderTrainingGraphs = (containerId: string) => {
+        const container = document.getElementById(containerId);
+        if (container && trainingHistory.length > 0) {
+            // Limpar container
+            container.innerHTML = '';
+
+            // Preparar dados para os gráficos
+            const epochs = trainingHistory.map((_, i) => i + 1);
+            const losses = trainingHistory.map((h) => h.loss);
+            const accuracies = trainingHistory.map((h) => h.acc);
+            const valLosses = trainingHistory.map((h) => h.val_loss);
+            const valAccuracies = trainingHistory.map((h) => h.val_acc);
+
+            // Criar gráfico de perda
+            const lossContainer = document.createElement('div');
+            lossContainer.style.width = '48%';
+            lossContainer.style.display = 'inline-block';
+            lossContainer.style.marginRight = '2%';
+
+            const accuracyContainer = document.createElement('div');
+            accuracyContainer.style.width = '48%';
+            accuracyContainer.style.display = 'inline-block';
+            accuracyContainer.style.marginLeft = '2%';
+
+            container.appendChild(lossContainer);
+            container.appendChild(accuracyContainer);
+
+            // Renderizar gráfico de perda
+            tfvis.render.linechart(
+                lossContainer,
+                {
+                    values: [
+                        epochs.map((epoch, i) => ({ x: epoch, y: losses[i] })),
+                        epochs.map((epoch, i) => ({
+                            x: epoch,
+                            y: valLosses[i]
+                        }))
+                    ],
+                    series: ['Treinamento', 'Validação']
+                },
+                {
+                    xLabel: 'Épocas',
+                    yLabel: 'Perda'
+                }
+            );
+
+            // Renderizar gráfico de acurácia
+            tfvis.render.linechart(
+                accuracyContainer,
+                {
+                    values: [
+                        epochs.map((epoch, i) => ({
+                            x: epoch,
+                            y: accuracies[i]
+                        })),
+                        epochs.map((epoch, i) => ({
+                            x: epoch,
+                            y: valAccuracies[i]
+                        }))
+                    ],
+                    series: ['Treinamento', 'Validação']
+                },
+                {
+                    xLabel: 'Épocas',
+                    yLabel: 'Acurácia'
+                }
+            );
+        }
+    };
 
     useEffect(() => {
         let isMounted = true;
@@ -119,10 +192,12 @@ export function useDiabetesModel() {
                     metrics: ['accuracy']
                 });
 
+                const history: any[] = [];
+
                 // Treinar modelo
                 await newModel.fit(features_tensor_normalized, target_tensor, {
                     batchSize: 40,
-                    epochs: 50, // Reduzido para ser mais rápido
+                    epochs: 50,
                     validationSplit: 0.2,
                     callbacks: {
                         onEpochEnd: (_epoch: any, logs: any) => {
@@ -130,6 +205,17 @@ export function useDiabetesModel() {
                                 setAccuracy(
                                     `${(logs.val_acc * 100).toFixed(2)}%`
                                 );
+
+                                // Armazenar histórico para uso posterior
+                                history.push({
+                                    epoch: _epoch,
+                                    loss: logs.loss,
+                                    acc: logs.acc,
+                                    val_loss: logs.val_loss,
+                                    val_acc: logs.val_acc
+                                });
+
+                                setTrainingHistory([...history]);
                             }
                         },
                         onTrainEnd: () => {
@@ -192,6 +278,8 @@ export function useDiabetesModel() {
         error,
         accuracy,
         predictDiabetes,
-        model: model !== null
+        model: model !== null,
+        trainingHistory,
+        renderTrainingGraphs
     };
 }

@@ -75,15 +75,12 @@ export function PrevisionContainer({
                 </button>
 
                 {prediction !== null && (
-                    <div className="mt-2 rounded-lg bg-gray-100 p-3">
-                        <span className="text-lg font-bold">
+                    <div className="mt-2 rounded-lg border border-gray-300 p-3">
+                        <span className="text-lg font-light">
                             Risco previsto:{' '}
                             <span
-                                className={
-                                    prediction > 0.5
-                                        ? 'text-red-600'
-                                        : 'text-green-600'
-                                }
+                                data-risk={prediction > 0.5}
+                                className="data-[risk=false]:text-green-600 data-[risk=true]:text-red-600"
                             >
                                 {prediction > 0.5
                                     ? 'ALTO (provável diabetes)'
