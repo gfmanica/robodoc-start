@@ -4,7 +4,7 @@ export function Footer() {
         <footer className="border-t border-gray-200 py-4">
             <div className="container mx-auto">
                 <p className="text-center text-sm font-light text-gray-500">
-                    &copy; {currentYear} Robodoc Start - Gabriel Felipe Manica.
+                    &copy; {currentYear} RoboDoc Start - Gabriel Felipe Manica.
                     Todos os direitos reservados.
                 </p>
             </div>

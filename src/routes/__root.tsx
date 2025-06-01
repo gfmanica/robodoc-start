@@ -8,9 +8,9 @@ import {
     Scripts
 } from '@tanstack/react-router';
 
+import { Footer } from '@/components/footer';
 import { Header } from '@/components/header';
 import appCss from '@/styles/app.css?url';
-import { Footer } from '@/components/footer';
 
 export const Route = createRootRoute({
     head: () => ({
@@ -23,7 +23,7 @@ export const Route = createRootRoute({
                 content: 'width=device-width, initial-scale=1'
             },
             {
-                title: 'Robodoc Start'
+                title: 'RoboDoc Start'
             },
             {
                 name: 'description',
