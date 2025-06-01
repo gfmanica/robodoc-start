@@ -71,7 +71,7 @@ export function PrevisionContainer({
                     onClick={() =>
                         setPrediction(handlePredict(inputData.current))
                     }
-                    className="hover:bg-blue-600 mt-2 cursor-pointer rounded-lg bg-blue-500 px-4 py-2 text-white disabled:opacity-50"
+                    className="mt-2 cursor-pointer rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:opacity-50"
                     disabled={loading || training}
                 >
                     Prever diabetes
@@ -100,10 +100,7 @@ export function PrevisionContainer({
                                 </p>
                             )}
                             {prediction <= 0.65 && prediction > 0.35 && (
-                                <p>
-                                    ⚡ Resultado intermediário. Considere
-                                    acompanhamento médico.
-                                </p>
+                                <p>⚡ Considere acompanhamento médico.</p>
                             )}
                             {prediction <= 0.35 && (
                                 <p>
