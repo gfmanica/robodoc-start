@@ -4,34 +4,39 @@ import * as tf from '@tensorflow/tfjs';
 
 import { ROBODOC_CSV_URL } from '@/constants';
 
-function shuffle(a: any[], b: any[]) {
-    for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-        [b[i], b[j]] = [b[j], b[i]];
+function shuffle(features: any[], target: any[]) {
+    let counter = features.length;
+    let temp = 0;
+    let index = 0;
+    while (counter > 0) {
+        index = (Math.random() * counter) | 0;
+        counter--;
+        // features:
+        temp = features[counter];
+        features[counter] = features[index];
+        features[index] = temp;
+        // target:
+        temp = target[counter];
+        target[counter] = target[index];
+        target[index] = temp;
     }
 }
 
-function determineMeanAndStddev(tensor: tf.Tensor2D) {
-    const dataMean = tensor.mean(0);
-    const dataStd = tf.moments(tensor, 0).variance.sqrt();
+function determineMeanAndStddev(data: tf.Tensor) {
+    const dataMean = data.mean(0);
+    const diffFromMean = data.sub(dataMean);
+    const squaredDiffFromMean = diffFromMean.square();
+    const variance = squaredDiffFromMean.mean(0);
+    const dataStd = variance.sqrt();
     return { dataMean, dataStd };
 }
 
-function normalizeTensor(tensor: tf.Tensor2D, mean: tf.Tensor, std: tf.Tensor) {
-    return tensor.sub(mean).div(std);
-}
-
-function predict_normalized(
-    model: tf.LayersModel,
-    value: any[],
-    mean: tf.Tensor,
-    std: tf.Tensor
+function normalizeTensor(
+    data: tf.Tensor,
+    dataMean: tf.Tensor,
+    dataStd: tf.Tensor
 ) {
-    const input = tf.tensor2d([value]);
-    const norm = normalizeTensor(input, mean, std);
-
-    return (model.predict(norm) as tf.Tensor).dataSync()[0];
+    return data.sub(dataMean).div(dataStd);
 }
 
 export function useDiabetesModel() {
@@ -39,137 +44,154 @@ export function useDiabetesModel() {
     const [loading, setLoading] = useState(true);
     const [accuracy, setAccuracy] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
+    const [training, setTraining] = useState(false);
     const dataMean = useRef<tf.Tensor | null>(null);
     const dataStd = useRef<tf.Tensor | null>(null);
-    const [numOfFeatures, setNumOfFeatures] = useState<number>(0);
 
     useEffect(() => {
         let isMounted = true;
-
         setLoading(true);
         setError(null);
 
-        const dataset = tf.data.csv(ROBODOC_CSV_URL, {
-            columnConfigs: { diabetes: { isLabel: true } }
-        });
-        const features: any[] = [];
-        const target: any[] = [];
+        const defineAndTrainModel = async () => {
+            try {
+                setTraining(true);
 
-        dataset
-            .columnNames()
-            .then((columnNames) => {
-                const nFeatures = columnNames.length - 1;
+                const dataset = tf.data.csv(ROBODOC_CSV_URL, {
+                    columnConfigs: { diabetes: { isLabel: true } }
+                });
 
-                setNumOfFeatures(nFeatures);
+                const features: number[] = [];
+                const target: number[] = [];
 
-                dataset
-                    .forEachAsync((e: any) => {
-                        features.push(Object.values(e.xs));
-                        target.push(e.ys.diabetes);
-                    })
-                    .then(() => {
-                        shuffle(features, target);
+                // Usar apenas HbA1c_level como feature
+                await dataset.forEachAsync((e: any) => {
+                    features.push(Number(e.xs.HbA1c_level));
+                    target.push(e.ys.diabetes);
+                });
 
-                        const features_tensor_raw = tf.tensor2d(features, [
-                            features.length,
-                            nFeatures
-                        ]);
+                if (!isMounted) return;
 
-                        const target_tensor = tf.tensor2d(target, [
-                            target.length,
-                            1
-                        ]);
+                // Embaralhar dados
+                shuffle(features, target);
 
-                        const { dataMean: mean, dataStd: std } =
-                            determineMeanAndStddev(features_tensor_raw);
+                const features_tensor_raw = tf.tensor2d(features, [
+                    features.length,
+                    1
+                ]);
+                const target_tensor = tf.tensor2d(target, [target.length, 1]);
 
-                        dataMean.current = mean;
-                        dataStd.current = std;
+                // Calcular mean e std
+                const { dataMean: mean, dataStd: std } =
+                    determineMeanAndStddev(features_tensor_raw);
+                dataMean.current = mean;
+                dataStd.current = std;
 
-                        const features_tensor_normalized = normalizeTensor(
-                            features_tensor_raw,
-                            mean,
-                            std
-                        );
-                        const model = tf.sequential();
-                        model.add(
-                            tf.layers.dense({
-                                inputShape: [nFeatures],
-                                units: 50,
-                                activation: 'relu'
-                            })
-                        );
-                        model.add(
-                            tf.layers.dense({ units: 1, activation: 'sigmoid' })
-                        );
-                        model.compile({
-                            optimizer: tf.train.adam(),
-                            loss: 'binaryCrossentropy',
-                            metrics: ['accuracy']
-                        });
-                        model
-                            .fit(features_tensor_normalized, target_tensor, {
-                                batchSize: 40,
-                                epochs: 10,
-                                validationSplit: 0.2,
-                                callbacks: {
-                                    onEpochEnd: (_epoch: any, logs: any) => {
-                                        if (
-                                            isMounted &&
-                                            logs?.val_acc !== undefined
-                                        ) {
-                                            setAccuracy(
-                                                `${(logs.val_acc * 100).toFixed(2)}%`
-                                            );
-                                        }
-                                    },
-                                    onTrainEnd: () => {
-                                        if (isMounted) setLoading(false);
-                                    }
-                                }
-                            })
-                            .then(() => {
-                                if (isMounted) setModel(model);
-                            })
-                            .catch((err: any) => {
-                                setError(
-                                    err.message || 'Erro ao treinar o modelo'
-                                );
-                                setLoading(false);
-                            });
-                    })
-                    .catch((err: any) => {
-                        setError(err.message || 'Erro ao carregar os dados');
-                        setLoading(false);
-                    });
-            })
-            .catch((err: any) => {
-                setError(
-                    err.message || 'Erro ao carregar os nomes das colunas'
+                const features_tensor_normalized = normalizeTensor(
+                    features_tensor_raw,
+                    mean,
+                    std
                 );
-                setLoading(false);
-            });
+
+                // Criar modelo - simplificado para uma feature
+                const newModel = tf.sequential();
+
+                // Camada de entrada
+                newModel.add(
+                    tf.layers.dense({
+                        inputShape: [1], // Apenas uma feature (HbA1c)
+                        units: 10,
+                        activation: 'relu'
+                    })
+                );
+
+                // Camada de saída
+                newModel.add(
+                    tf.layers.dense({
+                        units: 1,
+                        activation: 'sigmoid'
+                    })
+                );
+
+                newModel.compile({
+                    optimizer: tf.train.adam(),
+                    loss: 'binaryCrossentropy',
+                    metrics: ['accuracy']
+                });
+
+                // Treinar modelo
+                await newModel.fit(features_tensor_normalized, target_tensor, {
+                    batchSize: 40,
+                    epochs: 50, // Reduzido para ser mais rápido
+                    validationSplit: 0.2,
+                    callbacks: {
+                        onEpochEnd: (_epoch: any, logs: any) => {
+                            if (isMounted && logs?.val_acc !== undefined) {
+                                setAccuracy(
+                                    `${(logs.val_acc * 100).toFixed(2)}%`
+                                );
+                            }
+                        },
+                        onTrainEnd: () => {
+                            if (isMounted) {
+                                setTraining(false);
+                                setLoading(false);
+                            }
+                        }
+                    }
+                });
+
+                if (isMounted) {
+                    setModel(newModel);
+                }
+
+                // Limpar tensores
+                features_tensor_raw.dispose();
+                target_tensor.dispose();
+                features_tensor_normalized.dispose();
+            } catch (err: any) {
+                if (isMounted) {
+                    setError(err.message || 'Erro ao treinar o modelo');
+                    setLoading(false);
+                    setTraining(false);
+                }
+            }
+        };
+
+        defineAndTrainModel();
+
         return () => {
             isMounted = false;
         };
     }, []);
 
-    function predictDiabetes(values: number[]) {
-        if (!model || !dataMean.current || !dataStd.current) return null;
+    function predictDiabetes(hbA1cValue: number) {
+        if (!model || !dataMean.current || !dataStd.current) {
+            return null;
+        }
 
-        return predict_normalized(
-            model,
-            values,
+        const input = tf.tensor2d([[hbA1cValue]]);
+        const normalized = normalizeTensor(
+            input,
             dataMean.current,
             dataStd.current
         );
+        const prediction = model.predict(normalized) as tf.Tensor;
+        const predictionValue = prediction.dataSync()[0];
+
+        input.dispose();
+        normalized.dispose();
+        prediction.dispose();
+
+        return predictionValue;
     }
 
     return {
         loading,
+        training,
         error,
         accuracy,
         predictDiabetes,
-        numOfFeatures
+        model: model !== null
     };
 }
