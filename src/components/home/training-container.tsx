@@ -90,10 +90,7 @@ export function TrainingContainer({
 
                     <div className="rounded-lg border border-gray-200 bg-white p-4">
                         {/* Container para os gráficos do TensorFlow.js */}
-                        <div
-                            id="training-graphs-container"
-                            className="min-h-[300px] w-full"
-                        >
+                        <div id="training-graphs-container" className="w-full">
                             {!trainingHistory?.length && (
                                 <div className="flex h-[300px] items-center justify-center text-gray-500">
                                     <p>
@@ -106,7 +103,7 @@ export function TrainingContainer({
 
                         {/* Status do treinamento */}
                         {trainingHistory && trainingHistory.length > 0 && (
-                            <div className="mt-4 border-t pt-4">
+                            <div className="mt-4 border-t border-gray-200 pt-4">
                                 <div className="mb-4 flex items-center justify-between">
                                     <h4 className="text-sm font-medium text-gray-700">
                                         Progresso do Treinamento
