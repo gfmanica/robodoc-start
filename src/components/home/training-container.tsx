@@ -82,55 +82,6 @@ export function TrainingContainer({
                     </p>
                 </div>
 
-                {/* Área para exibir o gráfico de visualização do dataset */}
-                <div className="mt-6">
-                    <h3 className="mb-4 text-lg font-extralight">
-                        Visualização do dataset
-                    </h3>
-
-                    <div className="rounded-lg border border-gray-200 bg-white p-4">
-                        <p className="mb-4 text-sm text-gray-600">
-                            Distribuição dos dados por nível de HbA1c e presença
-                            de diabetes.
-                        </p>
-
-                        <div
-                            id="dataset-visualization-container"
-                            className="min-h-[300px] w-full"
-                        >
-                            {!datasetReady && (
-                                <div className="flex h-[300px] items-center justify-center text-gray-500">
-                                    <p>Carregando dados do dataset...</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Visualização dos dados originais */}
-                <div className="mt-6">
-                    <h3 className="mb-4 text-lg font-extralight">
-                        Dados originais
-                    </h3>
-
-                    <div className="rounded-lg border border-gray-200 bg-white p-4">
-                        <p className="mb-4 text-sm text-gray-600">
-                            Planilha completa com todos os dados utilizados no
-                            treinamento do modelo.
-                        </p>
-
-                        <div className="w-full">
-                            <iframe
-                                src={ROBODOC_CSV_VIEW_URL}
-                                className="w-full rounded border border-gray-300"
-                                style={{ height: '500px' }}
-                                title="Dataset Diabetes - Dados Originais"
-                                allowFullScreen
-                            />
-                        </div>
-                    </div>
-                </div>
-
                 {/* Área para exibir os gráficos do TensorFlow.js */}
                 <div className="mt-6">
                     <h3 className="mb-4 text-lg font-extralight">
@@ -453,6 +404,55 @@ export function TrainingContainer({
                         </div>
                     </div>
                 )}
+
+                {/* Área para exibir o gráfico de visualização do dataset */}
+                <div className="mt-6">
+                    <h3 className="mb-4 text-lg font-extralight">
+                        Visualização do dataset
+                    </h3>
+
+                    <div className="rounded-lg border border-gray-200 bg-white p-4">
+                        <p className="mb-4 text-sm text-gray-600">
+                            Distribuição dos dados por nível de HbA1c e presença
+                            de diabetes.
+                        </p>
+
+                        <div
+                            id="dataset-visualization-container"
+                            className="min-h-[300px] w-full"
+                        >
+                            {!datasetReady && (
+                                <div className="flex h-[300px] items-center justify-center text-gray-500">
+                                    <p>Carregando dados do dataset...</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Visualização dos dados originais */}
+                <div className="mt-6">
+                    <h3 className="mb-4 text-lg font-extralight">
+                        Dados originais
+                    </h3>
+
+                    <div className="rounded-lg border border-gray-200 bg-white p-4">
+                        <p className="mb-4 text-sm text-gray-600">
+                            Planilha completa com todos os dados utilizados no
+                            treinamento do modelo.
+                        </p>
+
+                        <div className="w-full">
+                            <iframe
+                                src={ROBODOC_CSV_VIEW_URL}
+                                className="w-full rounded border border-gray-300"
+                                style={{ height: '500px' }}
+                                title="Dataset Diabetes - Dados Originais"
+                                allowFullScreen
+                            />
+                        </div>
+                    </div>
+                </div>
             </div>
         </>
     );
