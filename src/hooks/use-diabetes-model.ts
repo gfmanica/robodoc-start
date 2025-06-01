@@ -47,8 +47,48 @@ export function useDiabetesModel() {
     const [error, setError] = useState<string | null>(null);
     const [training, setTraining] = useState(false);
     const [trainingHistory, setTrainingHistory] = useState<any[]>([]);
+    const [datasetVisualized, setDatasetVisualized] = useState(false);
     const dataMean = useRef<tf.Tensor | null>(null);
     const dataStd = useRef<tf.Tensor | null>(null);
+    const datasetData = useRef<any>(null);
+
+    // Função para visualizar o dataset como scatterplot
+    const visualizeDataset = (containerId: string) => {
+        const container = document.getElementById(containerId);
+        if (container && datasetData.current && !datasetVisualized) {
+            // Limpar container
+            container.innerHTML = '';
+
+            const classZero: any[] = [];
+            const classOne: any[] = [];
+
+            // Separar dados por classe
+            datasetData.current.forEach((item: any) => {
+                const features = { x: item.hba1c, y: item.diabetes };
+                if (item.diabetes === 0) {
+                    classZero.push(features);
+                } else if (item.diabetes === 1) {
+                    classOne.push(features);
+                }
+            });
+
+            // Renderizar scatterplot
+            tfvis.render.scatterplot(
+                container,
+                {
+                    values: [classZero, classOne],
+                    series: ['Sem diabetes', 'Com diabetes']
+                },
+                {
+                    xLabel: 'Nível de HbA1c',
+                    yLabel: 'Diabetes (0=Não, 1=Sim)',
+                    zoomToFit: true
+                }
+            );
+
+            setDatasetVisualized(true);
+        }
+    };
 
     // Função para renderizar gráficos em elementos específicos
     const renderTrainingGraphs = (containerId: string) => {
@@ -136,12 +176,20 @@ export function useDiabetesModel() {
 
                 const features: number[] = [];
                 const target: number[] = [];
+                const rawData: any[] = [];
 
-                // Usar apenas HbA1c_level como feature
+                // Usar apenas HbA1c_level como feature e armazenar dados brutos
                 await dataset.forEachAsync((e: any) => {
                     features.push(Number(e.xs.HbA1c_level));
                     target.push(e.ys.diabetes);
+                    rawData.push({
+                        hba1c: Number(e.xs.HbA1c_level),
+                        diabetes: e.ys.diabetes
+                    });
                 });
+
+                // Armazenar dados para visualização
+                datasetData.current = rawData;
 
                 if (!isMounted) return;
 
@@ -280,6 +328,8 @@ export function useDiabetesModel() {
         predictDiabetes,
         model: model !== null,
         trainingHistory,
-        renderTrainingGraphs
+        renderTrainingGraphs,
+        visualizeDataset,
+        datasetReady: datasetData.current !== null
     };
 }

@@ -19,7 +19,9 @@ function Home() {
         predictDiabetes,
         model,
         renderTrainingGraphs,
-        trainingHistory
+        trainingHistory,
+        visualizeDataset,
+        datasetReady
     } = useDiabetesModel();
 
     return (
@@ -38,6 +40,8 @@ function Home() {
                 accuracy={accuracy}
                 renderTrainingGraphs={renderTrainingGraphs}
                 trainingHistory={trainingHistory}
+                visualizeDataset={visualizeDataset}
+                datasetReady={datasetReady}
             />
         </>
     );

@@ -4,12 +4,16 @@ export function TrainingContainer({
     model,
     accuracy,
     renderTrainingGraphs,
-    trainingHistory
+    trainingHistory,
+    visualizeDataset,
+    datasetReady
 }: {
     model: boolean;
     accuracy: string;
     renderTrainingGraphs?: (containerId: string) => void;
     trainingHistory?: any[];
+    visualizeDataset?: (containerId: string) => void;
+    datasetReady?: boolean;
 }) {
     useEffect(() => {
         // Renderizar gráficos em tempo real durante o treinamento
@@ -21,6 +25,13 @@ export function TrainingContainer({
             renderTrainingGraphs('training-graphs-container');
         }
     }, [renderTrainingGraphs, trainingHistory]);
+
+    useEffect(() => {
+        // Visualizar dataset quando estiver pronto
+        if (visualizeDataset && datasetReady) {
+            visualizeDataset('dataset-visualization-container');
+        }
+    }, [visualizeDataset, datasetReady]);
 
     return (
         <>
@@ -61,6 +72,31 @@ export function TrainingContainer({
                         Modelo simplificado focado exclusivamente no nível de
                         HbA1c para diagnóstico rápido.
                     </p>
+                </div>
+
+                {/* Área para exibir o gráfico de visualização do dataset */}
+                <div className="mt-6">
+                    <h3 className="mb-4 text-lg font-extralight">
+                        Visualização do Dataset
+                    </h3>
+
+                    <div className="rounded-lg border border-gray-200 bg-white p-4">
+                        <p className="mb-4 text-sm text-gray-600">
+                            Distribuição dos dados por nível de HbA1c e presença
+                            de diabetes.
+                        </p>
+
+                        <div
+                            id="dataset-visualization-container"
+                            className="min-h-[300px] w-full"
+                        >
+                            {!datasetReady && (
+                                <div className="flex h-[300px] items-center justify-center text-gray-500">
+                                    <p>Carregando dados do dataset...</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
 
                 {/* Área para exibir os gráficos do TensorFlow.js */}
