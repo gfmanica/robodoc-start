@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 
-export function DiabetesPrevisionContainer({
+export function PrevisionContainer({
     error,
     loading,
     training,

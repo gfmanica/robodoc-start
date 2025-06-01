@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { DiabetesPrevisionContainer } from '@/components/home/diabetes-prevision-container';
 import { InfoContainer } from '@/components/home/info-container';
-import { TrainingInfoContainer } from '@/components/home/training-info-container';
+import { PrevisionContainer } from '@/components/home/prevision-container';
+import { TrainingContainer } from '@/components/home/training-container';
 
 import { useDiabetesModel } from '../hooks/use-diabetes-model';
 
@@ -18,14 +18,14 @@ function Home() {
         <>
             <InfoContainer />
 
-            <DiabetesPrevisionContainer
+            <PrevisionContainer
                 error={error}
                 loading={loading}
                 training={training}
                 handlePredict={predictDiabetes}
             />
 
-            <TrainingInfoContainer model={model} accuracy={accuracy} />
+            <TrainingContainer model={model} accuracy={accuracy} />
         </>
     );
 }

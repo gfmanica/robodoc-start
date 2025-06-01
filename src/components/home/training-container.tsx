@@ -1,4 +1,4 @@
-export function TrainingInfoContainer({
+export function TrainingContainer({
     model,
     accuracy
 }: {
