@@ -15,7 +15,7 @@ export function PrevisionContainer({
     const [prediction, setPrediction] = useState<number | null>(null);
 
     return (
-        <>
+        <div className="flex flex-col gap-4">
             <div className="-mb-2">
                 <div className="flex items-center gap-2">
                     <h2 className="text-2xl font-extralight">
@@ -115,6 +115,6 @@ export function PrevisionContainer({
                     </div>
                 )}
             </div>
-        </>
+        </div>
     );
 }

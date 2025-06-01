@@ -10,6 +10,7 @@ import {
 
 import { Header } from '@/components/header';
 import appCss from '@/styles/app.css?url';
+import { Footer } from '@/components/footer';
 
 export const Route = createRootRoute({
     head: () => ({
@@ -58,9 +59,11 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
             <body className="min-h-dvh w-dvw">
                 <Header />
 
-                <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 pt-[86px] pb-12">
+                <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 pt-[86px] pb-12">
                     {children}
                 </main>
+
+                <Footer />
 
                 <Scripts />
             </body>

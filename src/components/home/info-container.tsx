@@ -1,6 +1,6 @@
 export function InfoContainer() {
     return (
-        <>
+        <div className="flex flex-col gap-4">
             <div>
                 <h1 className="text-4xl font-extralight">
                     Detecção de diabetes
@@ -32,6 +32,6 @@ export function InfoContainer() {
                     Leia mais sobre o dataset.
                 </a>
             </p>
-        </>
+        </div>
     );
 }
