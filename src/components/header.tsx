@@ -1,5 +1,3 @@
-import { Link } from '@tanstack/react-router';
-
 import { ORIGINAL_ROBODOC } from '@/constants';
 
 export function Header() {
@@ -8,7 +6,7 @@ export function Header() {
             <div className="mx-auto flex w-full max-w-7xl items-center justify-between">
                 <h1 className="font-inter cursor-default text-2xl font-extralight select-none">
                     Robodoc{' '}
-                    <span className="bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text font-semibold text-transparent">
+                    <span className="bg-gradient-to-tr from-blue-500 to-purple-500 bg-clip-text font-semibold text-transparent">
                         Start
                     </span>
                 </h1>

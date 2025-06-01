@@ -17,9 +17,12 @@ export function PrevisionContainer({
     return (
         <>
             <div className="-mb-2">
-                <h2 className="text-2xl font-extralight">
-                    Previsão de diabetes
-                </h2>
+                <div className="flex items-center gap-2">
+                    <h2 className="text-2xl font-extralight">
+                        Previsão de diabetes
+                    </h2>
+                    <div className="flex-1 border-b border-gray-300" />
+                </div>
 
                 <p className="font-light text-gray-500">
                     Informe o nível de HbA1c para prever o risco de diabetes.
@@ -68,7 +71,7 @@ export function PrevisionContainer({
                     onClick={() =>
                         setPrediction(handlePredict(inputData.current))
                     }
-                    className="mt-2 rounded bg-blue-500 px-4 py-2 text-white disabled:opacity-50"
+                    className="hover:bg-blue-600 mt-2 cursor-pointer rounded-lg bg-blue-500 px-4 py-2 text-white disabled:opacity-50"
                     disabled={loading || training}
                 >
                     Prever diabetes

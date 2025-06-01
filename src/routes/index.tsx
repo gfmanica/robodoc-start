@@ -21,7 +21,8 @@ function Home() {
         renderTrainingGraphs,
         trainingHistory,
         visualizeDataset,
-        datasetReady
+        datasetReady,
+        confusionMatrix
     } = useDiabetesModel();
 
     return (
@@ -42,6 +43,7 @@ function Home() {
                 trainingHistory={trainingHistory}
                 visualizeDataset={visualizeDataset}
                 datasetReady={datasetReady}
+                confusionMatrix={confusionMatrix}
             />
         </>
     );

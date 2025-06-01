@@ -48,9 +48,81 @@ export function useDiabetesModel() {
     const [training, setTraining] = useState(false);
     const [trainingHistory, setTrainingHistory] = useState<any[]>([]);
     const [datasetVisualized, setDatasetVisualized] = useState(false);
+    const [confusionMatrix, setConfusionMatrix] = useState<{
+        tp: number;
+        fp: number;
+        fn: number;
+        tn: number;
+    } | null>(null);
     const dataMean = useRef<tf.Tensor | null>(null);
     const dataStd = useRef<tf.Tensor | null>(null);
     const datasetData = useRef<any>(null);
+    const originalFeatures = useRef<number[]>([]);
+    const originalTarget = useRef<number[]>([]);
+
+    // Função para calcular matriz de confusão baseada no código Angular
+    const calculateConfusionMatrix = async (
+        model: tf.LayersModel,
+        features: number[],
+        target: number[],
+        dataMean: tf.Tensor,
+        dataStd: tf.Tensor
+    ) => {
+        const predictions: number[] = [];
+
+        // Fazer previsões para todos os dados
+        for (let feature of features) {
+            const input = tf.tensor2d([[feature]]);
+            const normalized = normalizeTensor(input, dataMean, dataStd);
+            const prediction = model.predict(normalized) as tf.Tensor;
+            const predictionValue = prediction.dataSync()[0];
+
+            let response;
+            if (predictionValue < 0.5) {
+                response = 0;
+            } else {
+                response = 1;
+            }
+
+            predictions.push(response);
+
+            // Limpar memória
+            input.dispose();
+            normalized.dispose();
+            prediction.dispose();
+        }
+
+        // Criar tensores para matriz de confusão
+        const lab = tf.tensor1d(target, 'int32');
+        const pred = tf.tensor1d(predictions, 'int32');
+        const numClasses = 2;
+
+        // Calcular matriz de confusão
+        const output = tf.math.confusionMatrix(lab, pred, numClasses);
+        const confusionData = output.dataSync();
+
+        // Limpar tensores
+        lab.dispose();
+        pred.dispose();
+        output.dispose();
+
+        // Calcular total de amostras
+        const totalSamples = target.length;
+
+        // Calcular proporções corretas (valores de 0 a 1)
+        const confusion = {
+            tn: confusionData[0] / totalSamples, // True Negative
+            fp: confusionData[1] / totalSamples, // False Positive
+            fn: confusionData[2] / totalSamples, // False Negative
+            tp: confusionData[3] / totalSamples // True Positive
+        };
+
+        console.log('Matriz de confusão (valores brutos):', confusionData);
+        console.log('Total de amostras:', totalSamples);
+        console.log('Proporções calculadas:', confusion);
+
+        return confusion;
+    };
 
     // Função para visualizar o dataset como scatterplot
     const visualizeDataset = (containerId: string) => {
@@ -188,8 +260,10 @@ export function useDiabetesModel() {
                     });
                 });
 
-                // Armazenar dados para visualização
+                // Armazenar dados para visualização e matriz de confusão
                 datasetData.current = rawData;
+                originalFeatures.current = [...features]; // Cópia antes do shuffle
+                originalTarget.current = [...target]; // Cópia antes do shuffle
 
                 if (!isMounted) return;
 
@@ -266,10 +340,28 @@ export function useDiabetesModel() {
                                 setTrainingHistory([...history]);
                             }
                         },
-                        onTrainEnd: () => {
+                        onTrainEnd: async () => {
                             if (isMounted) {
                                 setTraining(false);
                                 setLoading(false);
+
+                                // Calcular matriz de confusão após o treinamento
+                                try {
+                                    const confusion =
+                                        await calculateConfusionMatrix(
+                                            newModel,
+                                            originalFeatures.current,
+                                            originalTarget.current,
+                                            mean,
+                                            std
+                                        );
+                                    setConfusionMatrix(confusion);
+                                } catch (err) {
+                                    console.error(
+                                        'Erro ao calcular matriz de confusão:',
+                                        err
+                                    );
+                                }
                             }
                         }
                     }
@@ -330,6 +422,7 @@ export function useDiabetesModel() {
         trainingHistory,
         renderTrainingGraphs,
         visualizeDataset,
-        datasetReady: datasetData.current !== null
+        datasetReady: datasetData.current !== null,
+        confusionMatrix
     };
 }
