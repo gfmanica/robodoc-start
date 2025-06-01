@@ -58,7 +58,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
             <body className="min-h-dvh w-dvw">
                 <Header />
 
-                <main className="mx-auto flex w-full max-w-5xl flex-col gap-2 p-4 pt-[65px]">
+                <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 pt-[86px] pb-12">
                     {children}
                 </main>
 
